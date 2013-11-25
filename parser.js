@@ -16,8 +16,9 @@ var Token = {
         case "\v":
         case "\x00":
             return true;
+        default:
+            return false;
         }
-        return false;
     },
     isVariable: function (c) {
         "use strict";
@@ -32,8 +33,9 @@ var Token = {
         case "(":
         case ")":
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 }, bool, boolTerm, boolFactor, boolAtom; // Because of circular dependencies, it was necessary to convert these to assignment form in order to satisfy JSLint.
 function AndExpression(left, right) {
