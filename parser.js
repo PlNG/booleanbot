@@ -142,7 +142,8 @@ function BooleanExpressionLexer(expr) {
     var tokens = [];
     var parse = function () {
         // find all the tokens and push them on the stack
-        for (var i = 0; i < expr.length; i++) {
+        var i;
+        for (i = 0; i < expr.length; i++) {
             var tok = expr[i];
             if (Token.isWhitespace(tok)) {
                 continue;
@@ -177,14 +178,16 @@ function BooleanExpressionLexer(expr) {
     this.variables = function () {
         // use a hash table to eliminate duplicate vars
         var vars = {};
-        for (var i = 0; i < tokens.length; i++) {
+        var i;
+        for (i = 0; i < tokens.length; i++) {
             if (Token.isVariable(tokens[i])) {
                 vars[tokens[i]] = tokens[i];
             }
         }
         // now load the variables into an array
         var vars_array = [];
-        for (var k in vars) {
+        var k;
+        for (k in vars) {
             vars_array.push(vars[k]);
         }
         vars_array.sort();
