@@ -124,7 +124,7 @@ var MinTerms = {
     id: 0,
     nextId: function () {
         "use strict";
-        return this.id++;
+        return MinTerms.id++;
     },
     // get the number of bits necessary to store the largest min term or don't care
     getNormalizedBitLength: function (min_terms, dont_cares) {
@@ -148,7 +148,7 @@ var MinTerms = {
         if (dont_cares === undefined) {
             dont_cares = [];
         }
-        var i, bit_length = this.getNormalizedBitLength(min_terms, dont_cares),
+        var i, bit_length = MinTerms.getNormalizedBitLength(min_terms, dont_cares),
             terms = [];
         for (i = 0; i < min_terms.length; i++) {
             terms.push(new MinTerm([min_terms[i]], bit_length));
@@ -171,7 +171,7 @@ var MinTerms = {
                 mins.push(i);
             }
         }
-        return this.fromArray(mins);
+        return MinTerms.fromArray(mins);
     }
 };
 function BooleanFunction(min_terms) {
@@ -317,11 +317,11 @@ var SumOfProducts = {
         var i, j, tmp, z = [];
         for (i = 0; i < x.length; i++) {
             for (j = 0; j < y.length; j++) {
-                tmp = this.removeDuplicates(x[i].concat(y[j]));
+                tmp = SumOfProducts.removeDuplicates(x[i].concat(y[j]));
                 z.push(tmp);
             }
         }
-        z = this.applyIdentity(z);
+        z = SumOfProducts.applyIdentity(z);
         return z;
         // alert(this.prettyify(z));
         // alert(z.join("+"));
@@ -346,7 +346,7 @@ var SumOfProducts = {
         var i, j, new_terms = [];
         for (i = 0; i < terms.length; i++) {
             for (j = 0; j < terms.length; j++) {
-                if (terms[j] !== null && (terms[i] !== null && (i !== j && this.arrayContainsArray(terms[i], terms[j])))) {
+                if (terms[j] !== null && (terms[i] !== null && (i !== j && SumOfProducts.arrayContainsArray(terms[i], terms[j])))) {
                     if (terms[j].length > terms[i].length) {
                         terms[j] = null;
                     } else {
@@ -382,7 +382,7 @@ var SumOfProducts = {
             b = tmp;
         }
         for (i = 0; i < len; i++) {
-            if (!this.inArray(a, b[i])) {
+            if (!SumOfProducts.inArray(a, b[i])) {
                 return false;
             }
         }
@@ -408,11 +408,11 @@ var SumOfProducts = {
             return [];
         }
         if (set.length === 1) {
-            return this.applyIdentity(set[0]);
+            return SumOfProducts.applyIdentity(set[0]);
         }
-        var i, dis = this.distribute(set[0], set[1]);
+        var i, dis = SumOfProducts.distribute(set[0], set[1]);
         for (i = 2; i < set.length; i++) {
-            dis = this.distribute(dis, set[i]);
+            dis = SumOfProducts.distribute(dis, set[i]);
         }
         return dis;
     },
