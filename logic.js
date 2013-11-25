@@ -7,7 +7,8 @@ function TruthTableIterator(vars) {
     this.next = function () {
         var n = index;
         var symbol_values = {};
-        for (var i = vars.length - 1; i >= 0; i--) {
+        var i;
+        for (i = vars.length - 1; i >= 0; i--) {
             symbol_values[vars[i]] = n & 1;
             n = n >> 1;
         }
@@ -29,7 +30,8 @@ function MinTerm(covers, bit_length, is_dont_care) {
     this.getNumberOfOnes = function () {
         if (number_of_ones == -1) {
             number_of_ones = 0;
-            for (var i = 0; i < this.bits.length; i++) {
+            var i;
+            for (i = 0; i < this.bits.length; i++) {
                 if (this.bits[i] == 1) {
                     number_of_ones++;
                 }
@@ -47,7 +49,9 @@ function MinTerm(covers, bit_length, is_dont_care) {
             return -1; // can't join 0 and 1
         }
         var index_of_diff = 0; // index where the difference occurred
-        for (var i = 0, differences = 0; i < that.bits.length; i++) {
+        var differences = 0;
+        var i;
+        for (i = 0; i < that.bits.length; i++) {
             var a = that.bits[i];
             var b = min_term.bits[i];
             // the _ *must* match up
@@ -85,7 +89,8 @@ function MinTerm(covers, bit_length, is_dont_care) {
         var is_dont_care = this.is_dont_care && min_term.is_dont_care;
         var new_term = new MinTerm(covers, this.bits.length, is_dont_care);
         // set the bits of the new term
-        for (var i = 0; i < bit_length; i++) {
+        var i;
+        for (i = 0; i < bit_length; i++) {
             new_term.bits[i] = this.bits[i];
             // mark the different bit
             if (i == index_of_diff) {
@@ -98,7 +103,8 @@ function MinTerm(covers, bit_length, is_dont_care) {
     };
     // determine if a minterm (m) is covered by this minterm
     this.coversMinTerm = function (m) {
-        for (var i = 0; i < this.covers.length; i++) {
+        var i;
+        for (i = 0; i < this.covers.length; i++) {
             if (m == this.covers[i]) {
                 return true;
             }
@@ -107,7 +113,10 @@ function MinTerm(covers, bit_length, is_dont_care) {
     };
     // construct the bit array
     var n = this.covers[0]; // build the bits array based on the first minterm covered
-    for (var i = this.bits.length - 1, tmp = n, j = 0; i >= 0; i--) {
+    var tmp = n;
+    var j = 0;
+    var i;
+    for (i = this.bits.length - 1; i >= 0; i--) {
         this.bits[j++] = tmp & 1;
         tmp = tmp >> 1;
     }
@@ -121,12 +130,14 @@ var MinTerms = {
     // get the number of bits necessary to store the largest min term or don't care
     getNormalizedBitLength: function (min_terms, dont_cares) {
         var max = 1;
-        for (var i = 0; i < min_terms.length; i++) {
+        var i;
+        for (i = 0; i < min_terms.length; i++) {
             if (min_terms[i] > max) {
                 max = min_terms[i];
             }
         }
-        for (var i = 0; i < dont_cares.length; i++) {
+        var i;
+        for (i = 0; i < dont_cares.length; i++) {
             if (dont_cares[i] > max) {
                 max = dont_cares[i];
             }
@@ -140,10 +151,12 @@ var MinTerms = {
         }
         var bit_length = this.getNormalizedBitLength(min_terms, dont_cares);
         var terms = [];
-        for (var i = 0; i < min_terms.length; i++) {
+        var i;
+        for (i = 0; i < min_terms.length; i++) {
             terms.push(new MinTerm([min_terms[i]], bit_length));
         }
-        for (var i = 0; i < dont_cares.length; i++) {
+        var i;
+        for (i = 0; i < dont_cares.length; i++) {
             terms.push(new MinTerm([dont_cares[i]], bit_length, true));
         }
         return terms;
@@ -153,7 +166,9 @@ var MinTerms = {
         var lexer = new BooleanExpressionLexer(expr);
         var vars = lexer.variables();
         var evaluator = Bool(lexer);
-        for (var i = 0, iter = new TruthTableIterator(vars); iter.hasNext(); i++) {
+        var iter = new TruthTableIterator(vars);
+        var i;
+        for (i = 0; iter.hasNext(); i++) {
             var symbol_values = iter.next();
             if (evaluator.eval(symbol_values)) {
                 mins.push(i);
@@ -172,11 +187,13 @@ function BooleanFunction(min_terms) {
         var groups = [];
         groups.push(min_terms);
         // for each group (we start off with one group, but add groups as we go...)
-        for (var i = 0; i < groups.length; i++) {
+        var i;
+        for (i = 0; i < groups.length; i++) {
             // categorize the group by the number of ones in each term
             var by_ones = {};
             var max_ones = 0; // keep track of this so we can skip the last group
-            for (var j = 0; j < groups[i].length; j++) {
+            var j;
+            for (j = 0; j < groups[i].length; j++) {
                 var ones = groups[i][j].getNumberOfOnes();
                 // create list if it doesn't already exist
                 if (!by_ones[ones]) {
@@ -190,7 +207,8 @@ function BooleanFunction(min_terms) {
             // build the next group using a hash table to avoid duplicate terms
             var next_group = {};
             var add_new_group = false;
-            for (var ones_length in by_ones) {
+            var ones_length;
+            for (ones_length in by_ones) {
                 ones_length = parseInt(ones_length, 10); // this saves us from stupid bugs
                 var search_group = by_ones[ones_length + 1];
                 // skip the max group and the group with no group with 1 more 1
@@ -198,10 +216,12 @@ function BooleanFunction(min_terms) {
                     continue;
                 }
                 // for each term in the group
-                for (var j = 0; j < by_ones[ones_length].length; j++) {
+                var j;
+                for (j = 0; j < by_ones[ones_length].length; j++) {
                     var a_term = by_ones[ones_length][j];
                     // try to find a match if the search group
-                    for (var k = 0; k < search_group.length; k++) {
+                    var k;
+                    for (k = 0; k < search_group.length; k++) {
                         var b_term = search_group[k];
                         var new_term = a_term.join(b_term);
                         if (new_term) {
@@ -215,7 +235,8 @@ function BooleanFunction(min_terms) {
             // add the new group
             if (add_new_group) {
                 groups.push([]);
-                for (var k in next_group) {
+                var k;
+                for (k in next_group) {
                     groups[i + 1].push(next_group[k]);
                 }
             }
@@ -225,7 +246,8 @@ function BooleanFunction(min_terms) {
     this.getRemainingTerms = function (groups) {
         var remaining_terms = {}; // using a hash table to eliminate duplicates
         // go through each group
-        for (var i = 0; i < groups.length; i++) {
+        var i;
+        for (i = 0; i < groups.length; i++) {
             // go through each term in the group
             for (j = 0; j < groups[i].length; j++) {
                 var term = groups[i][j];
@@ -237,7 +259,8 @@ function BooleanFunction(min_terms) {
         }
         // we have all the essential terms (in a hash table). Convert it to an array
         var terms = [];
-        for (var k in remaining_terms) {
+        var k;
+        for (k in remaining_terms) {
             terms.push(remaining_terms[k]);
             // alert(essential_terms[k].bits.toString());
         }
@@ -247,7 +270,8 @@ function BooleanFunction(min_terms) {
         return min_terms;
     };
     this.isMinTerm = function (n) {
-        for (var i = 0; i < min_terms.length; i++) {
+        var i;
+        for (i = 0; i < min_terms.length; i++) {
             if (min_terms[i].covers[0] == n) {
                 return true;
             }
@@ -256,7 +280,8 @@ function BooleanFunction(min_terms) {
     };
     this.getNumberOfVars = function () {
         var max = 1;
-        for (var i = 0; i < min_terms.length; i++) {
+        var i;
+        for (i = 0; i < min_terms.length; i++) {
             if (min_terms[i].covers[0] > max) {
                 max = min_terms[i].covers[0];
             }
@@ -273,7 +298,8 @@ var PrimeImplicantTable = {
     build: function (min_terms, primes) {
         var table = {};
         // loop through each min term number
-        for (var i = 0; i < min_terms.length; i++) {
+        var i;
+        for (i = 0; i < min_terms.length; i++) {
             // ignore don't cares
             if (min_terms[i].is_dont_care) {
                 continue;
@@ -281,7 +307,8 @@ var PrimeImplicantTable = {
             var n = min_terms[i].covers[0];
             table[n] = []; // create the list for the covering MinTerm objects
             // find the MinTerm objects that cover this min term, and push it onto this min term's list
-            for (var j = 0; j < primes.length; j++) {
+            var j;
+            for (j = 0; j < primes.length; j++) {
                 if (primes[j].coversMinTerm(n)) {
                     table[n].push(primes[j]);
                     // alert(table[min_terms[i].covers[0]]);
@@ -295,8 +322,10 @@ var PrimeImplicantTable = {
 var SumOfProducts = {
     distribute: function (x, y) {
         var z = [];
-        for (var i = 0; i < x.length; i++) {
-            for (var j = 0; j < y.length; j++) {
+        var i;
+        for (i = 0; i < x.length; i++) {
+            var j;
+            for (j = 0; j < y.length; j++) {
                 var tmp = this.removeDuplicates(x[i].concat(y[j]));
                 z.push(tmp);
             }
@@ -308,19 +337,23 @@ var SumOfProducts = {
     },
     removeDuplicates: function (a) {
         var b = {};
-        for (var i = 0; i < a.length; i++) {
+        var i;
+        for (i = 0; i < a.length; i++) {
             b[a[i]] = true;
         }
         var tmp = [];
-        for (var k in b) {
+        var k;
+        for (k in b) {
             tmp.push(k);
         }
         return tmp;
     },
     // apply the identity x = x + xy
     applyIdentity: function (terms) {
-        for (var i = 0; i < terms.length; i++) {
-            for (var j = 0; j < terms.length; j++) {
+        var i;
+        for (i = 0; i < terms.length; i++) {
+            var j;
+            for (j = 0; j < terms.length; j++) {
                 if (terms[j] != null && (terms[i] != null && (i != j && this.arrayContainsArray(terms[i], terms[j])))) {
                     if (terms[j].length > terms[i].length) {
                         terms[j] = null;
@@ -332,7 +365,8 @@ var SumOfProducts = {
             }
         }
         var new_terms = [];
-        for (var i = 0; i < terms.length; i++) {
+        var i;
+        for (i = 0; i < terms.length; i++) {
             if (terms[i] != null) {
                 new_terms.push(terms[i]);
             }
@@ -340,7 +374,8 @@ var SumOfProducts = {
         return new_terms;
     },
     inArray: function (a, c) {
-        for (var i = 0; i < a.length; i++) {
+        var i;
+        for (i = 0; i < a.length; i++) {
             if (a[i] == c) {
                 return true;
             }
@@ -354,7 +389,8 @@ var SumOfProducts = {
             a = b;
             b = tmp;
         }
-        for (var i = 0; i < len; i++) {
+        var i;
+        for (i = 0; i < len; i++) {
             if (!this.inArray(a, b[i])) {
                 return false;
             }
@@ -363,9 +399,11 @@ var SumOfProducts = {
     },
     fromTable: function (table) {
         var terms = [];
-        for (var k in table) {
+        var k;
+        for (k in table) {
             var tuple = [];
-            for (var i = 0; i < table[k].length; i++) {
+            var i;
+            for (i = 0; i < table[k].length; i++) {
                 tuple.push([table[k][i].id]);
             }
             terms.push(tuple);
@@ -381,7 +419,8 @@ var SumOfProducts = {
             }
         }
         var dis = this.distribute(set[0], set[1]);
-        for (var i = 2; i < set.length; i++) {
+        var i;
+        for (i = 2; i < set.length; i++) {
             dis = this.distribute(dis, set[i]);
         }
         return dis;
@@ -392,19 +431,23 @@ var SumOfProducts = {
         }
         // first build a lookup table
         primes_lookup = {};
-        for (var i = 0; i < primes.length; i++) {
+        var i;
+        for (i = 0; i < primes.length; i++) {
             primes_lookup[primes[i].id] = primes[i];
         }
         var list = [];
         // loop through every solution
-        for (var i = 0; i < solns.length; i++) {
+        var i;
+        for (i = 0; i < solns.length; i++) {
             var clause = [];
             // loop through every MinTerm in this particular clause, map the bit pattern to letters, and join it with a "+"
-            for (var j = 0; j < solns[i].length; j++) {
+            var j;
+            for (j = 0; j < solns[i].length; j++) {
                 var term = [];
                 var bits = primes_lookup[solns[i][j]].bits;
                 var letters_offset = bits.length - 1;
-                for (var k = bits.length - 1; k >= 0; k--) {
+                var k;
+                for (k = bits.length - 1; k >= 0; k--) {
                     if (bits[k] == "0") {
                         term.push(letters[letters_offset - k] + "'");
                     } else {
