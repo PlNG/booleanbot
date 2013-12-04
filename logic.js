@@ -1,10 +1,20 @@
+/**
+ * @constructor
+ * @param {Array.<string>} vars
+ */
 function TruthTableIterator(vars) {
     "use strict";
     var iterations = Math.pow(2, vars.length),
         index = 0;
+    /**
+     * @return {boolean}
+     */
     this.hasNext = function () {
         return index < iterations;
     };
+    /**
+     * @return {Object.<number>}
+     */
     this.next = function () {
         var i, symbol_values = {},
             n = index;
@@ -16,18 +26,48 @@ function TruthTableIterator(vars) {
         return symbol_values;
     };
 }
+/**
+ * @constructor
+ * @param {Array.<number>} covers
+ * @param {number} bit_length
+ * @param {boolean} [is_dont_care=false]
+ */
 function MinTerm(covers, bit_length, is_dont_care) {
     "use strict";
     var canJoin, k, n, tmp, j, that = this,
-        number_of_ones = -1; // calculate this later
-    this.covers = covers; // list of minterms (numbers) that this MinTerm covers (a joined MinTerm may cover multiple minterms)
-    this.bits = new Array(bit_length); // the bit representation of the MinTerm ordered from lsb to msb (i.e. 7 = [001])
+        number_of_ones = -1; // TODO: (Original Comment: calculate this later) Calculation never happens. Factor this out.
+    /**
+     * list of minterms (numbers) that this MinTerm covers (a joined MinTerm may cover multiple minterms)
+     * @type {Array.<number>}
+     */
+    this.covers = covers;
+    /**
+     * the bit representation of the MinTerm ordered from lsb to msb (i.e. 7 = [001])
+     * @type {Array}
+     */
+    this.bits = new Array(bit_length);
+    /**
+     * @type {boolean}
+     */
     this.is_dont_care = is_dont_care !== undefined ? false : is_dont_care;
-    this.must_be_used = !is_dont_care; // when a pair of terms are joined, they no longer need to be used in the minimized function
+    /**
+     * when a pair of terms are joined, they no longer need to be used in the minimized function
+     * @type {boolean}
+     */
+    this.must_be_used = !is_dont_care;
+    /**
+     * @type {number}
+     */
     this.id = MinTerms.nextId();
+    /**
+     * @return {string}
+     */
     this.toString = function () {
         return this.bits.toString();
     };
+    /**
+     * @return {number}
+     */
     this.getNumberOfOnes = function () {
         if (number_of_ones === -1) {
             number_of_ones = 0;
@@ -40,8 +80,12 @@ function MinTerm(covers, bit_length, is_dont_care) {
         }
         return number_of_ones;
     };
-    // determine if two MinTerms can be joined together (based on their bits).
-    // Returns the index of the difference if the terms can be joined, otherwise -1
+    /**
+     * determine if two MinTerms can be joined together (based on their bits).
+     * Returns the index of the difference if the terms can be joined, otherwise -1
+     * @param {Object} min_term
+     * @return {number}
+     */
     canJoin = function (min_term) {
         if (that === min_term) {
             return -1;  // can't join with itself
@@ -78,6 +122,10 @@ function MinTerm(covers, bit_length, is_dont_care) {
         // alert(this.toString() + "\n" + min_term.toString());
         return index_of_diff;
     };
+    /**
+     * @param {Object} min_term
+     * @return {boolean|Object}
+     */
     this.join = function (min_term) {
         var cover, isdontcare, new_term, i, index_of_diff = canJoin(min_term);
         if (index_of_diff === -1) {
@@ -100,7 +148,11 @@ function MinTerm(covers, bit_length, is_dont_care) {
         this.must_be_used = min_term.must_be_used = false;
         return new_term;
     };
-    // determine if a minterm (m) is covered by this minterm
+    /**
+     * determine if a minterm (m) is covered by this minterm
+     * @param {number} m
+     * @return {boolean}
+     */
     this.coversMinTerm = function (m) {
         var i;
         for (i = 0; i < this.covers.length; i++) {
@@ -119,14 +171,33 @@ function MinTerm(covers, bit_length, is_dont_care) {
         tmp = tmp >> 1;
     }
 }
-// MinTerm utilities
+/**
+ * MinTerm utilities
+ * @namespace {MinTerms} Object
+ * @property {number} id
+ * @property {Object} nextId
+ * @property {Object} getNormalizedBitLength
+ * @property {Object} fromArray
+ * @property {Object} fromExpression
+ */
 var MinTerms = {
+    /**
+     * @type {number}
+     */
     id: 0,
+    /**
+     * @return {number}
+     */
     nextId: function () {
         "use strict";
         return MinTerms.id++;
     },
-    // get the number of bits necessary to store the largest min term or don't care
+    /**
+     * get the number of bits necessary to store the largest min term or dont care
+     * @param {Array.<number>} min_terms
+     * @param {Array.<number>|Array.<undefined>} dont_cares
+     * @return {number}
+     */
     getNormalizedBitLength: function (min_terms, dont_cares) {
         "use strict";
         var i, max = 1;
@@ -142,7 +213,12 @@ var MinTerms = {
         }
         return Math.ceil(Math.log(max + 1) / Math.log(2));
     },
-    // build a set of min terms using arrays of integers
+    /**
+     * build a set of min terms using arrays of integers
+     * @param {Array.<number>} min_terms
+     * @param {Array.<number>=} dont_cares
+     * @return {Array.<Object>}
+     */
     fromArray: function (min_terms, dont_cares) {
         "use strict";
         if (dont_cares === undefined) {
@@ -158,6 +234,10 @@ var MinTerms = {
         }
         return terms;
     },
+    /**
+     * @param {string} expr
+     * @return {Array.<Object>}
+     */
     fromExpression: function (expr) {
         "use strict";
         var i, symbol_values, mins = [],
@@ -174,13 +254,23 @@ var MinTerms = {
         return MinTerms.fromArray(mins);
     }
 };
+/**
+ * @constructor
+ * @param {Array.<Object>} min_terms
+ */
 function BooleanFunction(min_terms) {
     "use strict";
+    /**
+     * @return {Array.<Object>}
+     */
     this.findPrimeImplicants = function () {
         var groups = this.joinTerms(),
             terms = this.getRemainingTerms(groups);
         return terms;
     };
+    /**
+     * @return {Array.<Array>}
+     */
     this.joinTerms = function () {
         var i, by_ones, max_ones, j, ones, next_group, add_new_group, ones_length, search_group, a_term, k, b_term, new_term, groups = [];
         groups.push(min_terms);
@@ -238,6 +328,10 @@ function BooleanFunction(min_terms) {
         }
         return groups;
     };
+    /**
+     * @param {Array.<Array>} groups
+     * @return {Array.<Object>}
+     */
     this.getRemainingTerms = function (groups) {
         var i, j, term, k, remaining_terms = {}, // using a hash table to eliminate duplicates
             terms = [];
@@ -261,9 +355,16 @@ function BooleanFunction(min_terms) {
         }
         return terms;
     };
+    /**
+     * @return {Array.<Object>}
+     */
     this.getMinTerms = function () {
         return min_terms;
     };
+    /**
+     * @param {number} n
+     * @return {boolean}
+     */
     this.isMinTerm = function (n) {
         var i;
         for (i = 0; i < min_terms.length; i++) {
@@ -273,6 +374,9 @@ function BooleanFunction(min_terms) {
         }
         return false;
     };
+    /**
+     * @return {number}
+     */
     this.getNumberOfVars = function () {
         var i, max = 1;
         for (i = 0; i < min_terms.length; i++) {
@@ -283,12 +387,21 @@ function BooleanFunction(min_terms) {
         return Math.log(max) / Math.log(2) + 1;
     };
 }
+/**
+ * builds a table that lists which MinTerm object covers the min_terms (passed in when this object was created)
+ * For example, table would look like
+ * {1 : [MinTerm obj, MinTerm obj],
+ *  4 : [MinTerm obj],
+ *  7 : [MinTerm obj, MinTerm obj, MinTerm obj}
+ * @namespace {PrimeImplicantTable} Object
+ * @property {Object} build
+ */
 var PrimeImplicantTable = {
-    // build a table that lists which MinTerm object covers the min_terms (passed in when this object was created)
-    // For example, table would look like
-    // {1 : [MinTerm obj, MinTerm obj],
-    //  4 : [MinTerm obj],
-    //  7 : [MinTerm obj, MinTerm obj, MinTerm obj}
+    /**
+     * @param {Array.<Object>} min_terms
+     * @param {Array.<Object>} primes
+     * @return {Object}
+     */
     build: function (min_terms, primes) {
         "use strict";
         var i, n, j, table = {};
@@ -310,8 +423,24 @@ var PrimeImplicantTable = {
         return table;
     }
 };
-// Represented A + BC = [A, [B,C]
+/**
+ * Represented A + BC = [A, [B,C]
+ * @namespace {SumOfProducts} Object
+ * @property {Object} distribute
+ * @property {Object} removeDuplicates
+ * @property {Object} applyIdentity
+ * @property {Object} inArray
+ * @property {Object} arrayContainsArray
+ * @property {Object} fromTable
+ * @property {Object} reduce
+ * @property {Object} toSymbols
+ */
 var SumOfProducts = {
+    /**
+     * @param {Array.<Array>} x
+     * @param {Array.<Array>} y
+     * @return Array.<Array>
+     */
     distribute: function (x, y) {
         "use strict";
         var i, j, tmp, z = [];
@@ -326,6 +455,10 @@ var SumOfProducts = {
         // alert(this.prettyify(z));
         // alert(z.join("+"));
     },
+    /**
+     * @param {Array.<string|number>} a
+     * @return Array.<string>
+     */
     removeDuplicates: function (a) {
         "use strict";
         var i, k, b = {},
@@ -340,7 +473,11 @@ var SumOfProducts = {
         }
         return tmp;
     },
-    // apply the identity x = x + xy
+    /**
+     * apply the identity: x + xy = x
+     * @param {Array.<Array>} terms
+     * @return Array.<Array>
+     */
     applyIdentity: function (terms) {
         "use strict";
         var i, j, new_terms = [];
@@ -363,6 +500,12 @@ var SumOfProducts = {
         }
         return new_terms;
     },
+    /**
+     * Checks if a value exists in an array. Oddly, Array.indexOf is slower, despite eliminating the loop.
+     * @param {Array.<string>} a
+     * @param {string} c
+     * @return {boolean}
+     */
     inArray: function (a, c) {
         "use strict";
         var i;
@@ -373,6 +516,11 @@ var SumOfProducts = {
         }
         return false;
     },
+    /**
+     * @param {Array.<string>} a
+     * @param {Array.<string>} b
+     * @return {boolean}
+     */
     arrayContainsArray: function (a, b) {
         "use strict";
         var i, tmp, len = Math.min(a.length, b.length);
@@ -388,6 +536,10 @@ var SumOfProducts = {
         }
         return true;
     },
+    /**
+     * @param {Object} table
+     * @return {Array.<Array>}
+     */
     fromTable: function (table) {
         "use strict";
         var k, tuple, i, terms = [];
@@ -402,6 +554,10 @@ var SumOfProducts = {
         }
         return terms;
     },
+    /**
+     * @param {Array.<Array>} set
+     * @return {Array.<Array>}
+     */
     reduce: function (set) {
         "use strict";
         if (set.length === 0) {
@@ -416,6 +572,12 @@ var SumOfProducts = {
         }
         return dis;
     },
+    /**
+     * @param {Array.<Array>} solutions
+     * @param {Array.<Object>} primes
+     * @param {Array.<string>} letters
+     * @return {Array.<string>}
+     */
     toSymbols: function (solns, primes, letters) {
         "use strict";
         if (solns.length === 0) {
