@@ -69,6 +69,11 @@ $(document).ready(function () {
         drawer = new BooleanFunctionOut(f, vars);
         drawer.render();
     });
+    /**
+     * Converts the input from a string to an array.
+     * @param {string} input
+     * @return {Array.<number>}
+     */
     var termInputStringToArray = function (input) {
         if ($.trim(input) === "") {
             return [];
@@ -189,6 +194,11 @@ $(document).ready(function () {
         drawer.render();
     });
 });
+/**
+ * @constructor
+ * @param {Object} f
+ * @param {Array.<string>} vars
+ */
 function BooleanFunctionOut(f, vars) {
     "use strict";
     this.buildTruthTable = function () {
